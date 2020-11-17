@@ -126,7 +126,7 @@ def main():
             for col_name, col in new_meta.iteritems():
                 gn.export(col.to_dict(), col_name, "geneMeta")
 
-    assay_export_name = "[A]{}".format(basename(assay_file))
+    assay_export_name = "[A]{}".format(file_path_sans_ext(basename(assay_file)))
 
     exported_assay = {
         "matrix": tb.values.tolist(),
