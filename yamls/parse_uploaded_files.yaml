@@ -11,6 +11,8 @@ meta:
     single-cell RNA sequencing in optimizing a combinatorial therapeutic
     strategy in metastatic renal cell carcinoma.*" Genome biology 17.1 (2016):
     80.
+
+    If the file is large (150 mb or higher), zipping and choosing the .zip format could help upload speed.
 endpoints:
   backend:
     cmd: python ./parse_uploaded_files.py

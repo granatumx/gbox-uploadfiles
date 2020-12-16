@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from os.path import basename
+from os.path import splitext
 
 # import modin.pandas as pd
 import pandas as pd
@@ -16,6 +17,9 @@ from pathlib import Path
 
 from zipfile import ZipFile
 from scipy.sparse import coo_matrix
+
+import time
+
 
 # A function to handle reading zip files
 # Returns both the sparse matrix and the dataframe
@@ -79,6 +83,8 @@ def handle_zip_file(assay):
 
 def main():
 
+    tic = time.perf_counter()
+
     gn = Granatum()
 
     assay_file = gn.get_uploaded_file_path("assayFile")
@@ -126,7 +132,7 @@ def main():
             for col_name, col in new_meta.iteritems():
                 gn.export(col.to_dict(), col_name, "geneMeta")
 
-    assay_export_name = "[A]{}".format(file_path_sans_ext(basename(assay_file)))
+    assay_export_name = "[A]{}".format(basename(assay_file))
 
     exported_assay = {
         "matrix": tb.values.tolist(),
@@ -193,6 +199,12 @@ The first few rows and columns:
     # gn.add_result({'columns': []}, 'table')
 
     # TODO: SAVE assay pickle
+
+    toc = time.perf_counter()
+    time_passed = round(toc - tic, 2)
+
+    timing = "* Finished upload step in {} seconds*".format(time_passed)
+    gn.add_result(timing, "markdown")
 
     gn.commit()
 
