@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from os.path import basename
 from os.path import splitext
 
@@ -34,6 +36,8 @@ def handle_zip_file(assay):
 
     numrows = 0
     numcols = 0
+
+    # os.system("unzip -p {} > {}.csv".format(assay, assay))
     
     with ZipFile(assay, 'r') as decompressed:
         name = decompressed.namelist()[0]
@@ -105,7 +109,11 @@ def main():
     elif file_format == "excel":
         tb = pd.read_excel(assay_file, index_col=0)
     elif file_format == "zip":
-        tb = handle_zip_file(assay_file)
+        os.system("unzip -p {} > {}.csv".format(assay_file, assay_file))
+        tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
+    elif file_format == "gz":
+        os.system("gunzip -c {} > {}.csv".format(assay_file, assay_file))
+        tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
     else:
         gn.error("Unknown file format: {}".format(file_format))
 
@@ -160,12 +168,18 @@ The first few rows and columns:
 
     meta_rows = []
     if sample_meta_file is not None:
-        if file_format == "csv" or file_format == "zip":
+        if file_format == "csv":
             sample_meta_tb = pd.read_csv(sample_meta_file)
         elif file_format == "tsv":
             sample_meta_tb = pd.read_csv(sample_meta_file, sep="\t")
         elif file_format == "excel":
             sample_meta_tb = pd.read_excel(sample_meta_file)
+        elif file_format == "zip":
+            os.system("unzip -p {} > {}.csv".format(sample_meta_file, sample_meta_file))
+            sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
+        elif file_format == "gz":
+            os.system("gunzip -c {} > {}.csv".format(sample_meta_file, sample_meta_file))
+            sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
         else:
             gn.error("Unknown file format: {}".format(file_format))
 

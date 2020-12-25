@@ -35,8 +35,10 @@ frontend:
           value: tsv
         - label: Excel file (*.xls/xlsx)
           value: excel
-        - label: Zip file(*.zip)
+        - label: Zip file less than 2 GB (*.zip)
           value: zip
+        - label: gz file (*.gz)
+          value: gz
       default: csv
       injectInto: fileFormat
     - type: checkbox

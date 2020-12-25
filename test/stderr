@@ -1,5 +1,0 @@
-FutureWarning: 
-
-In a future version of Scanpy, `scanpy.api` will be removed.
-Simply use `import scanpy as sc` and `import scanpy.external as sce` instead.
-
