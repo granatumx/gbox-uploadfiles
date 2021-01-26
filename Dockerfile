@@ -4,6 +4,7 @@ RUN apt-get install -y zlib1g
 RUN apt-get install -y bzip2
 RUN apt-get install -y lzma
 RUN apt-get install -y unzip
+RUN apt-get install -y zip
 RUN apt-get install -y gzip
 
 COPY . .
