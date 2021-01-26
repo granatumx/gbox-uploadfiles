@@ -110,6 +110,7 @@ def main():
     elif file_format == "excel":
         tb = pd.read_excel(assay_file, index_col=0)
     elif file_format == "zip":
+        os.system("zip -d {} __MACOSX/\\*".format(assay_file))
         os.system("unzip -p {} > {}.csv".format(assay_file, assay_file))
         tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
     elif file_format == "gz":
