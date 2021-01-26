@@ -27,7 +27,7 @@ frontend:
       injectInto: sampleMetaFile
   args:
     - type: select
-      label: File format
+      label: Assay file format
       choices:
         - label: Comma separated values (CSV) (*.csv)
           value: csv
@@ -41,6 +41,21 @@ frontend:
           value: gz
       default: csv
       injectInto: fileFormat
+    - type: select
+      label: Metadata File format
+      choices:
+        - label: Comma separated values (CSV) (*.csv)
+          value: csv
+        - label: Tab separated values (TSV) (*.txt)
+          value: tsv
+        - label: Excel file (*.xls/xlsx)
+          value: excel
+        - label: Zip file less than 2 GB (*.zip)
+          value: zip
+        - label: gz file (*.gz)
+          value: gz
+      default: csv
+      injectInto: fileFormatMeta
     - type: checkbox
       label: Convert gene IDs
       default: false
@@ -72,6 +87,6 @@ frontend:
       default: true
       injectInto: add_info
     - type: text
-      label: Enter your email address to get notified of any errors encountered in the pipeline
+      label: Enter your email address to use GranatumX in the cloud
       default: false
       injectInto: email_address

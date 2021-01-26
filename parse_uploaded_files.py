@@ -94,6 +94,7 @@ def main():
     assay_file = gn.get_uploaded_file_path("assayFile")
     sample_meta_file = gn.get_uploaded_file_path("sampleMetaFile")
     file_format = gn.get_arg("fileFormat")
+    file_format_meta = gn.get_arg("fileFormatMeta")
     species = gn.get_arg("species")
 
     # Share the email address among other gboxes using a pickle dump #
@@ -168,16 +169,16 @@ The first few rows and columns:
 
     meta_rows = []
     if sample_meta_file is not None:
-        if file_format == "csv":
+        if file_format_meta == "csv":
             sample_meta_tb = pd.read_csv(sample_meta_file)
-        elif file_format == "tsv":
+        elif file_format_meta == "tsv":
             sample_meta_tb = pd.read_csv(sample_meta_file, sep="\t")
-        elif file_format == "excel":
+        elif file_format_meta == "excel":
             sample_meta_tb = pd.read_excel(sample_meta_file)
-        elif file_format == "zip":
+        elif file_format_meta == "zip":
             os.system("unzip -p {} > {}.csv".format(sample_meta_file, sample_meta_file))
             sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
-        elif file_format == "gz":
+        elif file_format_meta == "gz":
             os.system("gunzip -c {} > {}.csv".format(sample_meta_file, sample_meta_file))
             sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
         else:
