@@ -29,32 +29,36 @@ frontend:
     - type: select
       label: Assay file format
       choices:
+        - label: Infer format from extension
+          value: und
         - label: Comma separated values (CSV) (*.csv)
           value: csv
         - label: Tab separated values (TSV) (*.txt)
           value: tsv
         - label: Excel file (*.xls/xlsx)
-          value: excel
+          value: xls
         - label: Zip file less than 2 GB (*.zip)
           value: zip
         - label: gz file (*.gz)
           value: gz
-      default: csv
+      default: und
       injectInto: fileFormat
     - type: select
       label: Metadata File format
       choices:
+        - label: Infer format from extension
+          value: und
         - label: Comma separated values (CSV) (*.csv)
           value: csv
         - label: Tab separated values (TSV) (*.txt)
           value: tsv
         - label: Excel file (*.xls/xlsx)
-          value: excel
+          value: xls
         - label: Zip file less than 2 GB (*.zip)
           value: zip
         - label: gz file (*.gz)
           value: gz
-      default: csv
+      default: und
       injectInto: fileFormatMeta
     - type: checkbox
       label: Convert gene IDs

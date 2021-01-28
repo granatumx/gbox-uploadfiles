@@ -103,11 +103,14 @@ def main():
     with open(gn.swd+"/shared.pkl", "wb") as fp:
         pickle.dump(shared, fp)
 
+    if file_format == "und":
+        file_format = Path(assay_file).suffix[1:]
+
     if file_format == "csv":
         tb = pd.read_csv(assay_file, sep=",", index_col=0, engine='c', memory_map=True)
     elif file_format == "tsv":
         tb = pd.read_csv(assay_file, sep="\t", index_col=0, engine='c', memory_map=True)
-    elif file_format == "excel":
+    elif file_format.startswith("xls"):
         tb = pd.read_excel(assay_file, index_col=0)
     elif file_format == "zip":
         os.system("zip -d {} __MACOSX/\\*".format(assay_file))
@@ -170,11 +173,14 @@ The first few rows and columns:
 
     meta_rows = []
     if sample_meta_file is not None:
+        if file_format_meta == "und":
+            file_format_meta = Path(sample_meta_file).suffix[1:]
+
         if file_format_meta == "csv":
             sample_meta_tb = pd.read_csv(sample_meta_file)
         elif file_format_meta == "tsv":
             sample_meta_tb = pd.read_csv(sample_meta_file, sep="\t")
-        elif file_format_meta == "excel":
+        elif file_format_meta.startswith("xls"):
             sample_meta_tb = pd.read_excel(sample_meta_file)
         elif file_format_meta == "zip":
             os.system("unzip -p {} > {}.csv".format(sample_meta_file, sample_meta_file))
