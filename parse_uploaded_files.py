@@ -175,7 +175,7 @@ def main():
             sample_meta_tb = sample_meta_tb.set_index(sample_meta_column)
             result_samples = list(set(sample_ids).intersection(set(sample_meta_tb.index)))
             sample_meta_tb = sample_meta_tb.loc[result_samples, :]
-            tb = tb.loc[result_samples, :]
+            tb = tb.loc[:, result_samples]
             sample_ids = tb.columns.values.tolist()
             gene_ids = tb.index.values.tolist()
         else:
