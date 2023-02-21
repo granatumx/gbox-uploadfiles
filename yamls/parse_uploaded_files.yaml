@@ -26,40 +26,62 @@ frontend:
       optional: true
       injectInto: sampleMetaFile
   args:
-    - type: select
-      label: Assay file format
-      choices:
-        - label: Infer format from extension
-          value: und
-        - label: Comma separated values (CSV) (*.csv)
-          value: csv
-        - label: Tab separated values (TSV) (*.txt)
-          value: tsv
-        - label: Excel file (*.xls/xlsx)
-          value: xls
-        - label: Zip file less than 2 GB (*.zip)
-          value: zip
-        - label: gz file (*.gz)
-          value: gz
-      default: und
-      injectInto: fileFormat
-    - type: select
-      label: Metadata File format
-      choices:
-        - label: Infer format from extension
-          value: und
-        - label: Comma separated values (CSV) (*.csv)
-          value: csv
-        - label: Tab separated values (TSV) (*.txt)
-          value: tsv
-        - label: Excel file (*.xls/xlsx)
-          value: xls
-        - label: Zip file less than 2 GB (*.zip)
-          value: zip
-        - label: gz file (*.gz)
-          value: gz
-      default: und
-      injectInto: fileFormatMeta
+#    - type: select
+#      label: Assay file format
+#      choices:
+#        - label: Infer format from extension
+#          value: und
+#        - label: Comma separated values (CSV) (*.csv)
+#          value: csv
+#        - label: Tab separated values (TSV) (*.txt)
+#          value: tsv
+#        - label: Excel file (*.xls/xlsx)
+#          value: xls
+#        - label: Zip file less than 2 GB (*.zip)
+#          value: zip
+#        - label: gz file (*.gz)
+#          value: gz
+#      default: und
+#      injectInto: fileFormat
+#    - type: select
+#      label: Metadata File format
+#      choices:
+#        - label: Infer format from extension
+#          value: und
+#        - label: Comma separated values (CSV) (*.csv)
+#          value: csv
+#        - label: Tab separated values (TSV) (*.txt)
+#          value: tsv
+#        - label: Excel file (*.xls/xlsx)
+#          value: xls
+#        - label: Zip file less than 2 GB (*.zip)
+#          value: zip
+#        - label: gz file (*.gz)
+#          value: gz
+#      default: und
+#      injectInto: fileFormatMeta
+    - type: text
+      label: Path for assay data inside of the file, eg test.zip/test.csv if upload is test.zip containing test.csv or test.xlsx/assaysheet if test.xlsx contains the data in assaysheet, defaults to filename if empty
+      default: ""
+      injectInto: assayPath
+    - type: text
+      label: Path for meta data inside of the file, eg test.zip/test.csv if upload is test.zip containing test.csv, defaults to filename if empty
+      default: ""
+      injectInto: sampleMetaPath
+    - type: text
+      label: Column label in sample meta data file that links to columns in assay (sample labels), if any, otherwise assumes same order as columns in assay
+      default: "ID"
+      injectInto: sampleMetaColumn
+    - type: number
+      label: Min cell count (min counts for a cell to be used in order to form a good statistic)
+      description: Typically you need some counts on at least some of the genes for a cell to make a good statistic. You will have later chances to refine this value but processing will be much faster if it is able to filter some of the cells at the beginning.
+      default: 100
+      injectInto: minCellCount
+    - type: number
+      label: Min gene count (min counts for a gene to be used in order to form a good statistic)
+      description: Typically you need some counts on at least some of the cells for a gene to make a good statistic
+      default: 100
+      injectInto: minGeneCount
     - type: checkbox
       label: Convert gene IDs
       default: false

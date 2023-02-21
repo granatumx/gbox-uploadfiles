@@ -22,6 +22,8 @@ from scipy.sparse import coo_matrix
 
 import time
 
+import datatable as dt
+
 
 # A function to handle reading zip files
 # Returns both the sparse matrix and the dataframe
@@ -92,10 +94,18 @@ def main():
     gn = Granatum()
 
     assay_file = gn.get_uploaded_file_path("assayFile")
+    assay_path = gn.get_arg("assayPath")
+    if assay_path == "":
+        assay_path = ""+assay_file
     sample_meta_file = gn.get_uploaded_file_path("sampleMetaFile")
-    file_format = gn.get_arg("fileFormat")
-    file_format_meta = gn.get_arg("fileFormatMeta")
+    sample_meta_path = gn.get_arg("sampleMetaPath")
+    sample_meta_column = gn.get_arg("sampleMetaColumn")
+    min_cell_count = gn.get_arg("minCellCount")         # For quick filtering
+    min_gene_count = gn.get_arg("minGeneCount")         # For quick filtering
+    #file_format = gn.get_arg("fileFormat")
+    #file_format_meta = gn.get_arg("fileFormatMeta")
     species = gn.get_arg("species")
+    whether_convert_id = gn.get_arg("whether_convert_id")
 
     # Share the email address among other gboxes using a pickle dump #
     email_address = gn.get_arg("email_address")
@@ -103,31 +113,101 @@ def main():
     with open(gn.swd+"/shared.pkl", "wb") as fp:
         pickle.dump(shared, fp)
 
-    if file_format == "und":
-        file_format = Path(assay_file).suffix[1:]
+    #if file_format == "und":
+    #    file_format = Path(assay_file).suffix[1:]
 
-    if file_format == "csv":
-        tb = pd.read_csv(assay_file, sep=",", index_col=0, engine='c', memory_map=True)
-    elif file_format == "tsv":
-        tb = pd.read_csv(assay_file, sep="\t", index_col=0, engine='c', memory_map=True)
-    elif file_format.startswith("xls"):
-        tb = pd.read_excel(assay_file, index_col=0)
-    elif file_format == "zip":
-        os.system("zip -d {} __MACOSX/\\*".format(assay_file))
-        os.system("unzip -p {} > {}.csv".format(assay_file, assay_file))
-        tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
-    elif file_format == "gz":
-        os.system("gunzip -c {} > {}.csv".format(assay_file, assay_file))
-        tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
-    else:
-        gn.error("Unknown file format: {}".format(file_format))
+    #if file_format == "csv":
+    #    tb = pd.read_csv(assay_file, sep=",", index_col=0, engine='c', memory_map=True)
+    #elif file_format == "tsv":
+    #    tb = pd.read_csv(assay_file, sep="\t", index_col=0, engine='c', memory_map=True)
+    #elif file_format.startswith("xls"):
+    #    tb = pd.read_excel(assay_file, index_col=0)
+    #elif file_format == "zip":
+    #    os.system("zip -d {} __MACOSX/\\*".format(assay_file))
+    #    os.system("unzip -p {} > {}.csv".format(assay_file, assay_file))
+    #    tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
+    #elif file_format == "gz":
+    #    os.system("gunzip -c {} > {}.csv".format(assay_file, assay_file))
+    #    tb = pd.read_csv("{}.csv".format(assay_file), sep=",", index_col=0, engine='c', memory_map=True)
+    #else:
+    #    gn.error("Unknown file format: {}".format(file_format))
+    DT = dt.fread(assay_path)
+    df = DT.to_pandas()
+    df = df.set_index(df.columns[0])
+    colsums = df.sum(axis=0)
+    df = df.loc[:, colsums >= min_cell_count]
+    rowsums = df.T.sum(axis=0)
+    df = df.T.loc[:, rowsums >= min_gene_count].T
+    tb = df + 0
+
+    tb = tb.loc[~tb.index.duplicated(), :]   # Deduplicate
 
     sample_ids = tb.columns.values.tolist()
     gene_ids = tb.index.values.tolist()
 
     gene_id_type = guess_gene_id_type(gene_ids[:5])
 
-    whether_convert_id = gn.get_arg("whether_convert_id")
+    meta_rows = []
+    if sample_meta_file is not None:
+        #if file_format_meta == "und":
+        #    file_format_meta = Path(sample_meta_file).suffix[1:]
+
+        #if file_format_meta == "csv":
+        #    sample_meta_tb = pd.read_csv(sample_meta_file)
+        #elif file_format_meta == "tsv":
+        #    sample_meta_tb = pd.read_csv(sample_meta_file, sep="\t")
+        #elif file_format_meta.startswith("xls"):
+        #    sample_meta_tb = pd.read_excel(sample_meta_file)
+        #elif file_format_meta == "zip":
+        #    os.system("unzip -p {} > {}.csv".format(sample_meta_file, sample_meta_file))
+        #    sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
+        #elif file_format_meta == "gz":
+        #    os.system("gunzip -c {} > {}.csv".format(sample_meta_file, sample_meta_file))
+        #    sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
+        #else:
+        #    gn.error("Unknown file format: {}".format(file_format))
+        sample_meta_tb = dt.fread(sample_meta_path).to_pandas()
+
+        if sample_meta_column in sample_meta_tb.columns:
+            # We can test for sample_meta aligning with sample_ids
+            sample_meta_tb = sample_meta_tb.set_index(sample_meta_column)
+            result_samples = list(set(sample_ids).intersection(set(sample_meta_tb.index)))
+            sample_meta_tb = sample_meta_tb.loc[result_samples, :]
+            tb = tb.loc[result_samples, :]
+            sample_ids = tb.columns.values.tolist()
+            gene_ids = tb.index.values.tolist()
+        else:
+            # Have to assume alignment
+            if len(sample_ids) != sample_meta_tb.shape[0]:
+                # Output an error
+                meta_message = "* Error: mismatch in meta data and assay data. Ensure you have a column {} or at least the number of rows match. Assay samples = {} not equal to  Meta samples = {}".format(sample_meta_column, len(sample_ids), sample_meta_tb.shape[0])
+                #gn.add_result(meta_message, "markdown")
+                gn.error(meta_message)
+                gn.commit()
+                exit(0)
+            else:
+                sample_meta_tb = sample_meta_tb.set_index(sample_ids)
+
+        for meta_name in sample_meta_tb.columns:
+            meta_output_name = "[M]{}".format(meta_name)
+
+            sample_meta_dict = dict(zip(sample_ids, sample_meta_tb.loc[sample_ids, meta_name].values.tolist()))
+
+            gn.export(sample_meta_dict, meta_output_name, "sampleMeta")
+
+            num_sample_values = 5
+            sample_values = ", ".join(sample_meta_tb[meta_name].astype(str).values[0:num_sample_values].tolist())
+            num_omitted_values = len(sample_meta_tb[meta_name]) - num_sample_values
+
+            if num_omitted_values > 0:
+                etc = ", ... and {} more entries".format(num_omitted_values)
+            else:
+                etc = ""
+
+            meta_rows.append({
+                'meta_name': meta_name,
+                'sample_values': str(sample_values) + etc,
+            })
 
     if whether_convert_id:
         to_id_type = gn.get_arg("to_id_type")
@@ -170,47 +250,6 @@ The first few rows and columns:
 """,
         "markdown",
     )
-
-    meta_rows = []
-    if sample_meta_file is not None:
-        if file_format_meta == "und":
-            file_format_meta = Path(sample_meta_file).suffix[1:]
-
-        if file_format_meta == "csv":
-            sample_meta_tb = pd.read_csv(sample_meta_file)
-        elif file_format_meta == "tsv":
-            sample_meta_tb = pd.read_csv(sample_meta_file, sep="\t")
-        elif file_format_meta.startswith("xls"):
-            sample_meta_tb = pd.read_excel(sample_meta_file)
-        elif file_format_meta == "zip":
-            os.system("unzip -p {} > {}.csv".format(sample_meta_file, sample_meta_file))
-            sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
-        elif file_format_meta == "gz":
-            os.system("gunzip -c {} > {}.csv".format(sample_meta_file, sample_meta_file))
-            sample_meta_tb = pd.read_csv("{}.csv".format(sample_meta_file))
-        else:
-            gn.error("Unknown file format: {}".format(file_format))
-
-        for meta_name in sample_meta_tb.columns:
-            meta_output_name = "[M]{}".format(meta_name)
-
-            sample_meta_dict = dict(zip(sample_ids, sample_meta_tb[meta_name].values.tolist()))
-
-            gn.export(sample_meta_dict, meta_output_name, "sampleMeta")
-
-            num_sample_values = 5
-            sample_values = ", ".join(sample_meta_tb[meta_name].astype(str).values[0:num_sample_values].tolist())
-            num_omitted_values = len(sample_meta_tb[meta_name]) - num_sample_values
-
-            if num_omitted_values > 0:
-                etc = ", ... and {} more entries".format(num_omitted_values)
-            else:
-                etc = ""
-
-            meta_rows.append({
-                'meta_name': meta_name,
-                'sample_values': str(sample_values) + etc,
-            })
 
     # meta_message = '\n'.join(
     #     "* Sample meta with name **{meta_name}** is accepted ({sample_values}).".format(**x) for x in meta_rows
