@@ -99,6 +99,8 @@ def main():
         assay_path = ""+assay_file
     sample_meta_file = gn.get_uploaded_file_path("sampleMetaFile")
     sample_meta_path = gn.get_arg("sampleMetaPath")
+    if sample_meta_path == "":
+        sample_meta_path = ""+sample_meta_file
     sample_meta_column = gn.get_arg("sampleMetaColumn")
     min_cell_count = gn.get_arg("minCellCount")         # For quick filtering
     min_gene_count = gn.get_arg("minGeneCount")         # For quick filtering
